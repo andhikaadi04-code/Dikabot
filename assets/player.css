@@ -1,0 +1,463 @@
+:root {
+  --apple-bg: #161618;
+  --apple-card: rgba(26, 26, 30, 0.92);
+  --apple-white: #ffffff;
+  --apple-subtext: rgba(255, 255, 255, 0.62);
+  --apple-dim: rgba(255, 255, 255, 0.38);
+  --apple-bar-bg: rgba(255, 255, 255, 0.18);
+  --apple-bar-fill: rgba(255, 255, 255, 0.94);
+  --apple-pill-bg: rgba(255, 255, 255, 0.12);
+  --apple-font: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+}
+
+:host {
+  display: block;
+  width: 100%;
+  height: 100%;
+  min-height: 520px;
+  overflow: hidden;
+  background: #0d0d0f;
+  color: var(--apple-white);
+  font-family: var(--apple-font);
+  -webkit-font-smoothing: antialiased;
+}
+
+.music-player {
+  position: absolute;
+  inset: 0;
+  isolation: isolate;
+  width: 100%;
+  height: 100%;
+  min-height: 520px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  background: #111114;
+  color: var(--apple-white);
+  font-family: var(--apple-font);
+  display: flex;
+  flex-direction: column;
+}
+
+/* Ambient backdrop image */
+.player-backdrop {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.player-backdrop-image {
+  position: absolute;
+  inset: -60px;
+  width: calc(100% + 120px);
+  height: calc(100% + 120px);
+  object-fit: cover;
+  opacity: 0.38;
+  filter: blur(60px) saturate(1.4);
+  transform: scale(1.1);
+}
+
+.player-scrim {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background: radial-gradient(circle at 50% 30%, rgba(20, 20, 24, 0.85) 0%, rgba(10, 10, 12, 0.98) 100%);
+  pointer-events: none;
+}
+
+/* Main Content Card (Spotify / Apple Lock Screen Style) */
+.player-content {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  max-width: 440px;
+  margin: 0 auto;
+  padding: 12px 24px 18px;
+  justify-content: space-between;
+}
+
+/* Top bar with pill handle and lyrics toggle */
+.player-top-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 24px;
+  margin-bottom: 8px;
+  position: relative;
+}
+
+.player-pill-notch {
+  width: 36px;
+  height: 4.5px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.28);
+  margin: 0 auto;
+}
+
+.player-lyrics-toggle {
+  position: absolute;
+  right: 0;
+  top: -2px;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.1);
+  border: none;
+  color: var(--apple-subtext);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.player-lyrics-toggle svg {
+  width: 15px;
+  height: 15px;
+}
+
+.player-lyrics-toggle.is-active {
+  background: rgba(255, 255, 255, 0.25);
+  color: #fff;
+}
+
+/* Big Album Artwork Card */
+.player-artwork-card {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  margin: 4px 0 16px;
+  transition: all 0.3s ease;
+}
+
+.player-cover {
+  width: 100%;
+  max-width: 330px;
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
+  border-radius: 24px;
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.65), 0 0 1px rgba(255, 255, 255, 0.15);
+  background: #202024;
+}
+
+/* Synchronized Lyrics Container */
+.player-lyrics {
+  flex: 1;
+  min-height: 220px;
+  max-height: 330px;
+  overflow-y: auto;
+  padding: 16px 10px;
+  overscroll-behavior: contain;
+  scrollbar-width: none;
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0%, #000 12%, #000 88%, transparent 100%);
+  mask-image: linear-gradient(to bottom, transparent 0%, #000 12%, #000 88%, transparent 100%);
+}
+
+.player-lyrics::-webkit-scrollbar {
+  display: none;
+}
+
+.lyric-line {
+  padding: 8px 0;
+  color: rgba(255, 255, 255, 0.32);
+  font-size: 22px;
+  font-weight: 700;
+  line-height: 1.35;
+  letter-spacing: -0.4px;
+  transition: all 0.35s ease;
+  cursor: pointer;
+}
+
+.lyric-line.is-active {
+  color: #ffffff;
+  font-size: 24px;
+  transform: scale(1.02);
+  transform-origin: left center;
+  text-shadow: 0 0 16px rgba(255, 255, 255, 0.2);
+}
+
+.lyric-line.is-past {
+  color: rgba(255, 255, 255, 0.52);
+}
+
+.player-empty-lyrics {
+  padding: 40px 10px;
+  color: var(--apple-subtext);
+  font-size: 18px;
+  text-align: center;
+}
+
+/* Track Metadata Row (Title, Artist, Audio Equalizer) */
+.player-meta-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 14px;
+}
+
+.player-track-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.player-title {
+  color: var(--apple-white);
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: -0.4px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.player-artist {
+  margin-top: 2px;
+  color: var(--apple-subtext);
+  font-size: 15px;
+  font-weight: 500;
+  letter-spacing: -0.2px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Animated Equalizer Wave */
+.player-equalizer {
+  display: flex;
+  align-items: flex-end;
+  gap: 2.5px;
+  height: 18px;
+  padding: 0 4px;
+}
+
+.eq-bar {
+  width: 3px;
+  height: 4px;
+  border-radius: 2px;
+  background: rgba(255, 255, 255, 0.65);
+  transition: height 0.2s ease;
+}
+
+.player-equalizer.is-playing .bar-1 {
+  animation: eqBounce 1.2s infinite ease-in-out;
+}
+.player-equalizer.is-playing .bar-2 {
+  animation: eqBounce 0.9s infinite ease-in-out 0.2s;
+}
+.player-equalizer.is-playing .bar-3 {
+  animation: eqBounce 1.4s infinite ease-in-out 0.4s;
+}
+.player-equalizer.is-playing .bar-4 {
+  animation: eqBounce 1.0s infinite ease-in-out 0.1s;
+}
+
+@keyframes eqBounce {
+  0%, 100% { height: 4px; }
+  50% { height: 17px; }
+}
+
+/* Transport (Progress Scrubber & Times) */
+.player-transport {
+  margin-bottom: 12px;
+}
+
+.player-progress {
+  position: relative;
+  height: 4.5px;
+  border-radius: 999px;
+  background: var(--apple-bar-bg);
+  cursor: pointer;
+  transition: height 0.15s ease;
+}
+
+.player-progress:hover {
+  height: 6px;
+}
+
+.player-progress-fill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 0%;
+  border-radius: 999px;
+  background: var(--apple-bar-fill);
+}
+
+.player-progress-thumb {
+  position: absolute;
+  top: 50%;
+  left: 0%;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: #ffffff;
+  transform: translate(-50%, -50%);
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+
+.player-progress:hover .player-progress-thumb {
+  opacity: 1;
+}
+
+.player-times {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 6px;
+  color: var(--apple-dim);
+  font-size: 11.5px;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.1px;
+}
+
+/* Playback Control Row (Rewind, Play/Pause, Forward) */
+.player-controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 46px;
+  margin-bottom: 14px;
+}
+
+.player-control-btn {
+  background: transparent;
+  border: none;
+  color: #ffffff;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px;
+  transition: transform 0.1s ease, opacity 0.15s ease;
+}
+
+.player-control-btn:active {
+  transform: scale(0.88);
+  opacity: 0.6;
+}
+
+.player-control-btn svg {
+  width: 32px;
+  height: 32px;
+  display: block;
+}
+
+.player-btn-play {
+  padding: 10px;
+}
+
+.player-btn-play svg {
+  width: 44px;
+  height: 44px;
+}
+
+/* Volume Row (iOS Lockscreen Style) */
+.player-volume-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0 4px;
+  margin-bottom: 16px;
+}
+
+.vol-icon {
+  width: 17px;
+  height: 17px;
+  color: var(--apple-dim);
+  flex-shrink: 0;
+}
+
+.player-volume-slider {
+  position: relative;
+  flex: 1;
+  height: 4px;
+  border-radius: 999px;
+  background: var(--apple-bar-bg);
+  cursor: pointer;
+}
+
+.player-volume-fill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  border-radius: 999px;
+  background: var(--apple-bar-fill);
+}
+
+/* Device Pill Container (AirPlay: DikaDev) */
+.player-device-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding-bottom: 4px;
+}
+
+.player-device-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 7px 18px;
+  border-radius: 999px;
+  background: var(--apple-pill-bg);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: -0.2px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  transition: all 0.2s ease;
+  cursor: default;
+}
+
+.player-device-pill:hover {
+  background: rgba(255, 255, 255, 0.18);
+  transform: translateY(-1px);
+}
+
+.airplay-icon {
+  width: 16px;
+  height: 16px;
+  color: #ffffff;
+}
+
+.device-name {
+  color: #ffffff;
+  font-weight: 600;
+}
+
+/* Responsiveness for compact viewports */
+@media (max-height: 560px) {
+  .player-content {
+    padding: 8px 18px 12px;
+  }
+  .player-cover {
+    max-width: 220px;
+    border-radius: 18px;
+  }
+  .player-artwork-card {
+    margin: 2px 0 8px;
+  }
+  .player-meta-row {
+    margin-bottom: 8px;
+  }
+  .player-controls {
+    gap: 36px;
+    margin-bottom: 8px;
+  }
+  .player-volume-row {
+    margin-bottom: 10px;
+  }
+}
